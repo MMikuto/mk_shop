@@ -221,6 +221,32 @@ INSERT INTO `products` (`product_id`, `product_name`, `description`, `price`, `i
 --
 
 --
+-- Table structure for table `products`
+--
+
+CREATE TABLE `category` (
+  `category_id` int(11) NOT NULL,
+  `category_name` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `category`
+--
+
+INSERT INTO `categorys` (`categorys_id`, `categorys_name`, `description`) VALUES
+(1, 'ชุดผัก', 'ชุดผัก'),
+(2, 'หมู', 'หมู'),
+(3, 'ชาบู', 'ชาบู');
+
+  `categorys_id` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+--
+-- Indexes for dumped tables
+--
+
+--
 -- Indexes for table `admin`
 --
 ALTER TABLE `admin`
