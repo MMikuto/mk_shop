@@ -1,10 +1,10 @@
 <template>
   <div class="container mt-4">
-    <h2 class="mb-3">📦 รายการสินค้า</h2>
+    <h2 class="mb-3">📦 รายการประเภทสินค้า</h2>
 
     <!-- 🔹 ปุ่มเพิ่ม + ตัวเลือกแถว + ตัวกรองประเภท -->
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-      <button class="btn btn-primary" @click="openAddModal">เพิ่มสินค้า +</button>
+      <button class="btn btn-primary" @click="openAddModal">เพิ่มประเภทสินค้า +</button>
 
       <div class="d-flex align-items-center">
         <label class="me-2 fw-bold">ประเภทสินค้า:</label>
@@ -36,14 +36,14 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="categorys in paginatedcategorys" :key="categorys.category_id">
-          <td>{{ categorys.category_id }}</td>
-          <td>{{ categorys.category_name }}</td><td>
+        <tr v-for="category in paginatedcategorys" :key="category.category_id">
+          <td>{{ category.category_id }}</td>
+          <td>{{ category.category_name }}</td><td>
             <div class="text-center">
-            <button class="btn btn-warning btn-sm me-2" @click="openEditModal(categorys)">
+            <button class="btn btn-warning btn-sm me-2" @click="openEditModal(category)">
               <i class="bi bi-pencil-square"></i>แก้ไข
             </button>
-            <button class="btn btn-danger btn-sm" @click="deletecategorys(categorys.categorys_id)">
+            <button class="btn btn-danger btn-sm" @click="deleteCategory(category.category_id)">
               <i class="bi bi-trash3"></i>ลบ
             </button>
             </div>
@@ -75,22 +75,22 @@
       </ul>
     </nav>
 
-    <!-- ✅ Modal เพิ่ม/แก้ไขสินค้า -->
+    <!-- ✅ Modal เพิ่ม/แก้ไขประเภทสินค้า -->
     <div class="modal fade" id="editModal" tabindex="-1">
       <div class="modal-dialog modal-md">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">{{ isEditMode ? "แก้ไขสินค้า" : "เพิ่มสินค้าใหม่" }}</h5>
+            <h5 class="modal-title">{{ isEditMode ? "แก้ไขประเภทสินค้า" : "เพิ่มประเภทสินค้า" }}</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
-            <form @submit.prevent="savecategorys">
+            <form @submit.prevent="saveCategory">
               <div class="mb-3">
-                <label class="form-label">ชื่อสินค้า</label>
-                <input v-model="editForm.categorys_name" type="text" class="form-control" required />
+                <label class="form-label">ชื่อประเภทสินค้า</label>
+                <input v-model="editForm.category_name" type="text" class="form-control" required />
               </div>
               <button type="submit" class="btn btn-success w-100">
-                {{ isEditMode ? "บันทึกการแก้ไข" : "เพิ่มสินค้า" }}
+                {{ isEditMode ? "บันทึกการแก้ไข" : "เพิ่มประเภทสินค้า" }}
               </button>
             </form>
           </div>
@@ -114,8 +114,7 @@ export default {
 
     // Modal & Form
     const isEditMode = ref(false);
-    const editForm = ref({ categorys_id: null, categorys_name: "", description: "", image: "", category_id: "" });
-    const newImageFile = ref(null);
+    const editForm = ref({ category_id: null, category_name: "" });
     let modalInstance = null;
 
     // Pagination
@@ -124,7 +123,7 @@ export default {
 
     const filteredcategorys = computed(() => {
       if (!selectedCategory.value) return categorys.value;
-      return categorys.value.filter((p) => p.categorys_name === selectedCategory.value);
+      return categorys.value.filter((category) => category.category_name === selectedCategory.value);
     });
 
     const totalPages = computed(() => Math.ceil(filteredcategorys.value.length / itemsPerPage.value));
@@ -133,7 +132,7 @@ export default {
       return filteredcategorys.value.slice(start, start + itemsPerPage.value);
     });
 
-    // ✅ ดึงข้อมูลสินค้า + ประเภทสินค้า
+    // ✅ ดึงข้อมูลประเภทสินค้า
     const fetchCategorys = async () => {
       try {
         const res = await fetch("http://localhost/MK_SHOP/php_api/api_categorys.php");
@@ -151,61 +150,41 @@ export default {
       }
     };
 
-    // ✅ เปิด modal เพิ่มสินค้า
+    // ✅ เปิด modal เพิ่มประเภทสินค้า
     const openAddModal = () => {
       isEditMode.value = false;
-      editForm.value = { categorys_id: null, categorys_name: "" };
-      newImageFile.value = null;
-
-      // เคลียร์ค่าไฟล์ input
-      const fileInput = document.querySelector('#editModal input[type="file"]');
-      if (fileInput) fileInput.value = "";
+      editForm.value = { category_id: null, category_name: "" };
 
       const modalEl = document.getElementById("editModal");
       modalInstance = new window.bootstrap.Modal(modalEl);
       modalInstance.show();
     };
 
-    // ✅ เปิด modal แก้ไขสินค้า
-    const openEditModal = (categorys) => {
+    // ✅ เปิด modal แก้ไขประเภทสินค้า
+    const openEditModal = (category) => {
       isEditMode.value = true;
-      editForm.value = { ...categorys, category_id: categorys.category_id };
-      newImageFile.value = null;
-
-      // เคลียร์ input file
-      const fileInput = document.querySelector('#editModal input[type="file"]');
-      if (fileInput) fileInput.value = "";
+      editForm.value = { ...category };
 
       const modalEl = document.getElementById("editModal");
       modalInstance = new window.bootstrap.Modal(modalEl);
       modalInstance.show();
     };
-
-    const handleFileUpload = (e) => (newImageFile.value = e.target.files[0]);
 
     // ✅ บันทึกประเภทสินค้า (เพิ่ม/แก้ไข)
     const saveCategory = async () => {
       const formData = new FormData();
       formData.append("action", isEditMode.value ? "update" : "add");
-      if (isEditMode.value) formData.append("categorys_id", editForm.value.categorys_id);
-      formData.append("categorys_name", editForm.value.categorys_name);
-      formData.append("description", editForm.value.description);
-      formData.append("category_id", editForm.value.category_id);
-      if (newImageFile.value) formData.append("image", newImageFile.value);
+      if (isEditMode.value) formData.append("category_id", editForm.value.category_id);
+      formData.append("category_name", editForm.value.category_name.trim());
 
       try {
         const res = await fetch("http://localhost/MK_SHOP/php_api/api_categorys.php", { method: "POST", body: formData });
         const result = await res.json();
-        alert(result.message || result.error);
+        if (!res.ok || !result.success) throw new Error(result.message || "บันทึกประเภทสินค้าไม่สำเร็จ");
 
-        await fetchCategories();
+        await fetchCategorys();
         modalInstance.hide();
-
-        // ✅ เคลียร์ค่าฟอร์มและรูปหลังบันทึก
-        editForm.value = { categorys_id: null, categorys_name: "" };
-        newImageFile.value = null;
-        const fileInput = document.querySelector('#editModal input[type="file"]');
-        if (fileInput) fileInput.value = "";
+        editForm.value = { category_id: null, category_name: "" };
 
       } catch (error) {
         alert("เกิดข้อผิดพลาด: " + error.message);
@@ -217,11 +196,16 @@ export default {
       if (!confirm("ยืนยันการลบประเภทสินค้านี้หรือไม่?")) return;
       const formData = new FormData();
       formData.append("action", "delete");
-      formData.append("categorys_id", id);
-      const res = await fetch("http://localhost/MK_SHOP/php_api/api_categorys.php", { method: "POST", body: formData });
-      const result = await res.json();
-      alert(result.message || result.error);
-      fetchCategories();
+      formData.append("category_id", id);
+      try {
+        const res = await fetch("http://localhost/MK_SHOP/php_api/api_categorys.php", { method: "POST", body: formData });
+        const result = await res.json();
+        if (!res.ok || !result.success) throw new Error(result.message || "ลบประเภทสินค้าไม่สำเร็จ");
+        await fetchCategorys();
+        alert(result.message);
+      } catch (error) {
+        alert("เกิดข้อผิดพลาด: " + error.message);
+      }
     };
 
     // ✅ Pagination
@@ -234,7 +218,7 @@ export default {
 
     return {
       categorys, categories, selectedCategory, loading, error,
-      isEditMode, editForm, openAddModal, openEditModal, saveCategory, deleteCategory, handleFileUpload,
+      isEditMode, editForm, openAddModal, openEditModal, saveCategory, deleteCategory,
       paginatedcategorys, totalPages, currentPage, itemsPerPage, goToPage, prevPage, nextPage
     };
   }

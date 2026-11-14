@@ -80,7 +80,7 @@ CREATE TABLE `employees` (
 --
 
 INSERT INTO `employees` (`emp_id`, `firstname`, `lastname`, `telephone`, `username`, `password`) VALUES
-(1, 'Somchai', 'Suksan', '0812345678', 'admin', '12345'),
+(1, 'Somchai', 'Suksan', '0812345678', 'admin', '1234'),
 (2, 'Nongyao', 'Sornjapo', '0812345678', 'yao', '1234');
 
 -- --------------------------------------------------------

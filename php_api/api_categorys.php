@@ -2,85 +2,63 @@
 include 'condb.php';
 header('Content-Type: application/json; charset=utf-8');
 
-$action = $_POST['action'] ?? '';
-
 try {
- if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        // ดึงสินค้าพร้อมชื่อประเภท
-
-
-        // ดึงรายการประเภทด้วย
-        $catStmt = $conn->prepare("SELECT * FROM categorys ORDER BY category_id ASC");
-        $catStmt->execute();
-        $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
-
-        echo json_encode(["success" => true, "data"=> $categories, "categories" => $categories]);
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        $stmt = $conn->query("SELECT category_id, category_name FROM categorys ORDER BY category_id ASC");
+        $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode(["success" => true, "data" => $categories, "categories" => $categories]);
         exit;
     }
 
+    $action = $_POST['action'] ?? '';
 
-    // เพิ่มประเภทสินค้า
     if ($action === 'add') {
-        $desc = $_POST['categorys.category_id'] ?? '';
-        $name = $_POST['categorys.category_name'];
-        
-
-        $imageName = null;
-        if (!empty($_FILES['image']['name'])) {
-            $imageName = time() . '_' . basename($_FILES['image']['name']);
-            move_uploaded_file($_FILES['image']['tmp_name'], "uploads/$imageName");
+        $name = trim($_POST['category_name'] ?? '');
+        if ($name === '') {
+            http_response_code(400);
+            echo json_encode(["success" => false, "message" => "กรุณาระบุชื่อประเภทสินค้า"]);
+            exit;
         }
 
-        $stmt = $conn->prepare("INSERT INTO categorys (categorys_name, description)
-                                VALUES (?, ?)");
-        $stmt->execute([$name, $desc]);
-        echo json_encode(["message" => "เพิ่มประเภทสินค้าเรียบร้อย"]);
+        $stmt = $conn->prepare("INSERT INTO categorys (category_name) VALUES (?)");
+        $stmt->execute([$name]);
+        echo json_encode(["success" => true, "message" => "เพิ่มประเภทสินค้าเรียบร้อย"]);
         exit;
     }
 
-    // แก้ไขสินค้า
     if ($action === 'update') {
-        $id = $_POST['categorys_id'];
-        $name = $_POST['categorys_name'];
+        $id = $_POST['category_id'] ?? '';
+        $name = trim($_POST['category_name'] ?? '');
+        if ($id === '' || $name === '') {
+            http_response_code(400);
+            echo json_encode(["success" => false, "message" => "กรุณาระบุข้อมูลประเภทสินค้าให้ครบ"]);
+            exit;
+        }
 
-        $sql = "UPDATE categorys SET categorys_name=?, description=? WHERE categorys_id=?";
-        $params = [$name, $desc, $id];
-
-        $stmt = $conn->prepare($sql);
-        $stmt->execute($params);
-        echo json_encode(["message" => "แก้ไขประเภทสินค้าสำเร็จ"]);
+        $stmt = $conn->prepare("UPDATE categorys SET category_name = ? WHERE category_id = ?");
+        $stmt->execute([$name, $id]);
+        echo json_encode(["success" => true, "message" => "แก้ไขประเภทสินค้าสำเร็จ"]);
         exit;
     }
 
-    // ลบสินค้า
     if ($action === 'delete') {
-        $id = $_POST['categorys_id'];
-        $stmt = $conn->prepare("DELETE FROM categorys WHERE categorys_id=?");
-        $stmt->execute([$id]);
-        echo json_encode(["message" => "ลบประเภทสินค้าเรียบร้อย"]);
-        exit;
-    }
-    
-        $sql .= " WHERE categorys_id=?";
-        $params[] = $id;
+        $id = $_POST['category_id'] ?? '';
+        if ($id === '') {
+            http_response_code(400);
+            echo json_encode(["success" => false, "message" => "ไม่พบรหัสประเภทสินค้า"]);
+            exit;
+        }
 
-        $stmt = $conn->prepare($sql);
-        $stmt->execute($params);
-        echo json_encode(["message" => "แก้ไขประเภทสินค้าสำเร็จ"]);
-        exit;
-    
-
-    // ลบสินค้า
-    if ($action === 'delete') {
-        $id = $_POST['categorys_id'];
-        $stmt = $conn->prepare("DELETE FROM categorys WHERE categorys_id=?");
+        $stmt = $conn->prepare("DELETE FROM categorys WHERE category_id = ?");
         $stmt->execute([$id]);
-        echo json_encode(["message" => "ลบประเภทสินค้าเรียบร้อย"]);
+        echo json_encode(["success" => true, "message" => "ลบประเภทสินค้าเรียบร้อย"]);
         exit;
     }
 
-}catch (Exception $e) {
-    echo json_encode(["error" => $e->getMessage()]);
+    http_response_code(400);
+    echo json_encode(["success" => false, "message" => "ไม่พบคำสั่งที่ต้องการ"]);
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(["success" => false, "message" => $e->getMessage()]);
 }
-
 ?>
